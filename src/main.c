@@ -84,8 +84,8 @@ int main(int argc, const char** argv) {
   int nb_streams = input_file->nb_streams;
   allocate_stream_contexts(nb_streams);
 
-  ignore_unsupported_streams();
   ignore_streams_from_argv(argc, argv);
+  ignore_unsupported_streams();
 
   open_output_file();
   open_bsfs();
