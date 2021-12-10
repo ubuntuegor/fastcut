@@ -26,6 +26,14 @@ void encode_frame(int stream_index) {
       stream_ctx->enc_pkt->pts -= stream_ctx->first_occured_pts;
     if (stream_ctx->enc_pkt->dts != AV_NOPTS_VALUE)
       stream_ctx->enc_pkt->dts -= stream_ctx->first_occured_pts;
+    if (stream_ctx->state == SEEKING_AND_FIRST_GOP) {
+      stream_ctx->enc_pkt->dts =
+          stream_ctx->enc_pkt->pts - stream_ctx->first_gop_dts_shift;
+    }
+    if (stream_ctx->state == LAST_GOP) {
+      stream_ctx->enc_pkt->dts =
+          stream_ctx->enc_pkt->pts - stream_ctx->last_gop_dts_shift;
+    }
     av_packet_rescale_ts(stream_ctx->enc_pkt, in_time_base, out_time_base);
     ret = av_interleaved_write_frame(output_file, stream_ctx->enc_pkt);
     av_packet_unref(stream_ctx->enc_pkt);

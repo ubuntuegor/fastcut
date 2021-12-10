@@ -22,6 +22,7 @@ void open_encoder(int stream_index) {
   stream_ctx->enc_ctx->colorspace = stream_ctx->dec_ctx->colorspace;
   stream_ctx->enc_ctx->time_base =
       output_file->streams[stream_ctx->output_stream_index]->time_base;
+  stream_ctx->enc_ctx->max_b_frames = 0;
 
   ret = avcodec_open2(stream_ctx->enc_ctx, encoder, NULL);
   if (ret < 0) {

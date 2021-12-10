@@ -1,9 +1,9 @@
 #include <libavformat/avformat.h>
 #include <libavutil/log.h>
+#include "bsf.h"
 #include "fast_cut.h"
+#include "globals.h"
 #include "preprocess.h"
-#include "stream_ctx.h"
-#include "types.h"
 #include "utils.h"
 
 Options o;
@@ -88,11 +88,13 @@ int main(int argc, const char** argv) {
   ignore_streams_from_argv(argc, argv);
 
   open_output_file();
+  open_bsfs();
 
-  find_start_of_last_gop();
+  do_preprocess();
   do_fast_cut();
 
   av_write_trailer(output_file);
+  close_bsfs();
   free_stream_contexts(nb_streams);
   avformat_close_input(&input_file);
   if (output_file && !(output_file->oformat->flags & AVFMT_NOFILE))

@@ -1,4 +1,5 @@
 #include "fast_cut.h"
+#include "bsf.h"
 #include "decoder.h"
 #include "encoder.h"
 #include "globals.h"
@@ -117,12 +118,25 @@ static void process_copy_packet(AVPacket* pkt) {
 static int have_all_streams_ended() {
   int res = 1;
   for (int i = 0; i < input_file->nb_streams; ++i) {
-    if (!stream_ctxs[i]->ignore && stream_ctxs[i]->state != ENDED) {
+    StreamContext* stream_ctx = stream_ctxs[i];
+    if (!(stream_ctx->ignore) && stream_ctx->state != ENDED) {
       res = 0;
       break;
     }
   }
   return res;
+}
+
+void process_packet(AVPacket* pkt) {
+  StreamContext* stream_ctx = stream_ctxs[pkt->stream_index];
+  switch (stream_ctx->type) {
+    case AVMEDIA_TYPE_VIDEO:
+      process_video_packet(pkt);
+      break;
+    default:
+      process_copy_packet(pkt);
+      break;
+  }
 }
 
 void do_fast_cut() {
@@ -133,25 +147,52 @@ void do_fast_cut() {
   }
 
   AVPacket* pkt = av_packet_alloc();
-  int i = 0;
-  while (av_read_frame(input_file, pkt) >= 0) {
-    StreamContext* stream_ctx = stream_ctxs[pkt->stream_index];
-    switch (stream_ctx->type) {
-      case AVMEDIA_TYPE_VIDEO:
-        process_video_packet(pkt);
-        break;
-      default:
-        process_copy_packet(pkt);
-        break;
+
+  int ret = 0;
+  while (ret >= 0) {
+    int ret = av_read_frame(input_file, pkt);
+    if (ret == AVERROR_EOF) {
+      ret = 0;
+      break;
+    }
+
+    int stream_index = pkt->stream_index;
+    StreamContext* stream_ctx = stream_ctxs[stream_index];
+    if (stream_ctx->ignore)
+      continue;
+
+    if (stream_ctx->bsf_ctx) {
+      send_frame_to_bsf(pkt, stream_index);
+      while (get_bsf_frames(pkt, stream_index) >= 0) {
+        process_packet(pkt);
+      }
+    } else {
+      process_packet(pkt);
     }
 
     av_packet_unref(pkt);
 
-    if (have_all_streams_ended()) {
+    if (have_all_streams_ended())
       break;
-    }
+  }
 
-    i++;
+  if (ret < 0) {
+    av_log(NULL, AV_LOG_FATAL, "Failed to read input file\n%s\n",
+           av_err2str(ret));
+    exit(1);
+  }
+
+  if (!have_all_streams_ended()) {
+    int nb_streams = input_file->nb_streams;
+    for (int i = 0; i < nb_streams; ++i) {
+      StreamContext* stream_ctx = stream_ctxs[i];
+      if (stream_ctx->bsf_ctx != NULL) {
+        send_frame_to_bsf(NULL, i);
+        while (get_bsf_frames(pkt, i) >= 0) {
+          process_packet(pkt);
+        }
+      }
+    }
   }
 
   av_packet_free(&pkt);

@@ -1,5 +1,6 @@
 #include "utils.h"
 #include <libavutil/parseutils.h>
+#include "globals.h"
 
 void print_usage() {
   av_log(NULL, AV_LOG_INFO, "Usage: \n");

@@ -14,9 +14,12 @@ void allocate_stream_contexts(int nb_streams) {
                                            input_file->streams[i]->time_base);
     stream_ctxs[i]->pts_last_gop_start = AV_NOPTS_VALUE;
     stream_ctxs[i]->first_occured_pts = AV_NOPTS_VALUE;
+    stream_ctxs[i]->first_gop_dts_shift = 0;
+    stream_ctxs[i]->last_gop_dts_shift = 0;
     stream_ctxs[i]->type = input_file->streams[i]->codecpar->codec_type;
     stream_ctxs[i]->dec_ctx = NULL;
     stream_ctxs[i]->enc_ctx = NULL;
+    stream_ctxs[i]->bsf_ctx = NULL;
   }
 }
 
