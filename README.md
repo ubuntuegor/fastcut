@@ -1,7 +1,10 @@
 # fastcut
 
-`fastcut input.mp4 -i 2 -i 3 <start timecode> <end timecode> output.mp4`
+Cut fragment out of a video with minimal re-encoding.
 
 ```
--i N — ignore track N
+Usage: fastcut [options] <input_file> <start_time> <end_time> <output_file>
+
+Options:
+  -i <n>       ignore track number n
 ```
