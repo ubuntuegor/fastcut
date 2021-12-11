@@ -31,6 +31,7 @@ typedef struct StreamContext {
   int ignore;
   int output_stream_index;
   enum AVMediaType type;
+  AVRational in_time_base;
   AVCodecContext* dec_ctx;
   AVCodecContext* enc_ctx;
   AVBSFContext* bsf_ctx;

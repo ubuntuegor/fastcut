@@ -25,7 +25,7 @@
 
 static void copy_packet(AVPacket* pkt) {
   StreamContext* stream_ctx = stream_ctxs[pkt->stream_index];
-  AVRational in_time_base = input_file->streams[pkt->stream_index]->time_base;
+  AVRational in_time_base = stream_ctx->in_time_base;
   AVRational out_time_base =
       output_file->streams[stream_ctx->output_stream_index]->time_base;
   pkt->stream_index = stream_ctx->output_stream_index;

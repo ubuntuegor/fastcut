@@ -36,7 +36,7 @@ void encode_frame(int stream_index) {
       break;
     }
 
-    AVRational in_time_base = input_file->streams[stream_index]->time_base;
+    AVRational in_time_base = stream_ctx->in_time_base;
     AVRational out_time_base =
         output_file->streams[stream_ctx->output_stream_index]->time_base;
     stream_ctx->enc_pkt->stream_index = stream_ctx->output_stream_index;

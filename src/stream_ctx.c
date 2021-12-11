@@ -35,6 +35,7 @@ void allocate_stream_contexts(int nb_streams) {
     stream_ctxs[i]->first_gop_dts_shift = 0;
     stream_ctxs[i]->last_gop_dts_shift = 0;
     stream_ctxs[i]->type = input_file->streams[i]->codecpar->codec_type;
+    stream_ctxs[i]->in_time_base = input_file->streams[i]->time_base;
     stream_ctxs[i]->dec_ctx = NULL;
     stream_ctxs[i]->enc_ctx = NULL;
     stream_ctxs[i]->bsf_ctx = NULL;

@@ -39,6 +39,9 @@ void open_bsfs() {
       case AV_CODEC_ID_AAC:
         ret = av_bsf_list_parse_str("aac_adtstoasc", &(stream_ctx->bsf_ctx));
         break;
+      default:
+        continue;
+        break;
     }
 
     if (ret < 0) {
@@ -48,14 +51,14 @@ void open_bsfs() {
 
     AVBSFContext* bsf_ctx = stream_ctx->bsf_ctx;
 
-    ret = avcodec_parameters_copy(bsf_ctx->par_in, out_stream->codecpar);
+    ret = avcodec_parameters_copy(bsf_ctx->par_in, in_stream->codecpar);
     if (ret < 0) {
       av_log(NULL, AV_LOG_WARNING,
              "Failed to copy BSF parameters for track %u\n", i);
       continue;
     }
 
-    bsf_ctx->time_base_in = out_stream->time_base;
+    bsf_ctx->time_base_in = stream_ctx->in_time_base;
 
     ret = av_bsf_init(bsf_ctx);
     if (ret < 0) {
@@ -65,14 +68,13 @@ void open_bsfs() {
       continue;
     }
 
-    ret = avcodec_parameters_copy(out_stream->codecpar, bsf_ctx->par_out);
-    if (ret < 0) {
-      av_log(NULL, AV_LOG_WARNING,
-             "Failed to copy BSF parameters for track %u\n", i);
-      continue;
-    }
-
-    out_stream->time_base = bsf_ctx->time_base_out;
+    stream_ctx->in_time_base = bsf_ctx->time_base_out;
+    stream_ctx->start_pts =
+        av_rescale_q(stream_ctx->start_pts, input_file->streams[i]->time_base,
+                     stream_ctx->in_time_base);
+    stream_ctx->end_pts =
+        av_rescale_q(stream_ctx->end_pts, input_file->streams[i]->time_base,
+                     stream_ctx->in_time_base);
   }
 }
 
