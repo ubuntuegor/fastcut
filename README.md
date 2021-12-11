@@ -13,7 +13,7 @@ Options:
 
 ### Install dependencies
 
-Ubuntu: `sudo apt install libavcodec-dev libavformat-dev`
+Ubuntu: `sudo apt install libavcodec-dev libavformat-dev`  
 Arch: `sudo pacman -S ffmpeg`
 
 ### Build using CMake:
